@@ -22,3 +22,22 @@
            (get-in ((wrap-csp handler {:policy {:default-src :self}
                                        :report-only? true}) {})
                    [:headers "Content-Security-Policy-Report-Only"])))))
+
+(deftest policy-generator-test
+  (let [handler (constantly {:status 200 :headers {} :body ""})
+        generator #(case (:uri %)
+                     "/simple-page" {:default-src :none}
+                     "/style-page" {:default-src :none
+                                    :style-src :self}
+                     nil)
+        opts {:policy {:default-src :self}
+              :policy-generator generator}]
+    (is (= "default-src 'none'"
+           (get-in ((wrap-csp handler opts) {:uri "/simple-page"})
+                   [:headers "Content-Security-Policy"])))
+    (is (= "default-src 'none';style-src 'self'"
+           (get-in ((wrap-csp handler opts) {:uri "/style-page"})
+                   [:headers "Content-Security-Policy"])))
+    (is (= "default-src 'self'"
+           (get-in ((wrap-csp handler opts) {:uri "/other-page"})
+                   [:headers "Content-Security-Policy"])))))
