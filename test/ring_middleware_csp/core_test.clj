@@ -41,3 +41,18 @@
     (is (= "default-src 'self'"
            (get-in ((wrap-csp handler opts) {:uri "/other-page"})
                    [:headers "Content-Security-Policy"])))))
+
+(deftest report-handler-test
+  (let [handler (constantly {:status 200 :headers {} :body "OK"})
+        report-handler {:path "/csp-report"
+                        :handler (fn [req] {:status 204 :headers {} :body ""})}
+        opts {:policy {:default-src :self}
+              :report-handler report-handler}]
+    (is (= {:status 204 :headers {} :body ""}
+           ((wrap-csp handler opts) {:uri "/csp-report"})))
+    (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
+           ((wrap-csp handler opts) {:uri "/a/csp-report"})))
+    (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
+           ((wrap-csp handler opts) {:uri "/csp-report/1"})))
+    (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
+           ((wrap-csp handler opts) {:uri "/"})))))
