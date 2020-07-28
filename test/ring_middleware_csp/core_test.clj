@@ -12,7 +12,11 @@
            (compose {:default-src [:self "https://example.com"]
                      :connect-src :none
                      :script-src [:self "https://script.example.com"]
-                     :style-src [:unsafe-inline "https://style.example.com"]}))))
+                     :style-src [:unsafe-inline "https://style.example.com"]})))
+    (is (= "script-src 'self';report-uri /csp-report-path;report-to csp-endpoint"
+           (compose {:script-src [:self]
+                     :report-uri "/csp-report-path"
+                     :report-to "csp-endpoint"}))))
   (testing "with nonce"
     (is (= "script-src 'self' 'nonce-abcdefg'"
            (compose {:script-src [:self :nonce]} "abcdefg")))
@@ -51,19 +55,27 @@
                    [:headers "Content-Security-Policy"])))))
 
 (deftest report-handler-test
-  (let [handler (constantly {:status 200 :headers {} :body "OK"})
-        report-handler {:path "/csp-report"
-                        :handler (fn [req] {:status 204 :headers {} :body ""})}
-        opts {:policy {:default-src :self}
-              :report-handler report-handler}]
-    (is (= {:status 204 :headers {} :body ""}
-           ((wrap-csp handler opts) {:uri "/csp-report"})))
-    (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
-           ((wrap-csp handler opts) {:uri "/a/csp-report"})))
-    (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
-           ((wrap-csp handler opts) {:uri "/csp-report/1"})))
-    (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
-           ((wrap-csp handler opts) {:uri "/"})))))
+  (testing "use report-handler and report-uri"
+    (let [handler (constantly {:status 200 :headers {} :body "OK"})
+          opts {:policy {:default-src :self}
+                :report-handler (fn [req] {:status 204 :headers {} :body ""})
+                :report-uri "/csp-report"}]
+      (is (= {:status 204 :headers {} :body ""}
+             ((wrap-csp handler opts) {:uri "/csp-report"})))
+      (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
+             ((wrap-csp handler opts) {:uri "/a/csp-report"})))
+      (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
+             ((wrap-csp handler opts) {:uri "/csp-report/1"})))
+      (is (= {:status 200 :body "OK" :headers {"Content-Security-Policy" "default-src 'self'"}}
+             ((wrap-csp handler opts) {:uri "/"})))))
+  (testing "invalid option"
+    (let [handler (constantly {:status 200 :headers {} :body "OK"})]
+      (is (thrown? AssertionError
+            (wrap-csp handler {:policy {:default-src :self}
+                               :report-handler (fn [req] {:status 204 :headers {} :body ""})})))
+      (is (thrown? AssertionError
+            (wrap-csp handler {:policy {:default-src :self}
+                               :report-uri "/csp-report"}))))))
 
 (deftest nonce-test
   (testing "enabled"

@@ -37,16 +37,18 @@
   Accepts the following options:
   :policy           - CSP in {directive-name directive-values} format. See README for details.
   :report-only?     - true if Use Content-Security-Policy-Report-Only Header.
-  :policy-generator - Function that dynamically generate policy map from request.
-  :report-handler   - map including following keys.
-    :path           - report uri path.
-    :handler        - Function that process request and return response.
+  :policy-generator - function that dynamically generate policy map from request.
+  :report-handler   - function that process request and return response.
+  :report-uri       - specify the path to use report-handler.
   :use-nonce?       - boolean. if true, generate nonce and replace policy value :nonce to `nonce-xxxxxxxx`.
                       default: true
   :nonce-generator  - custom function that generate nonce string.
                       default implementation by SecureRandom class."
-  [handler {:keys [policy report-only? policy-generator report-handler use-nonce? nonce-generator]
+  [handler {:keys [policy report-only? policy-generator report-handler
+                   report-uri use-nonce? nonce-generator]
             :or {use-nonce? true}}]
+  (assert (= (nil? report-uri) (nil? report-handler))
+          "if use report-handler or report-uri, must set both report-handler and report-uri")
   (let [header-name (if report-only?
                       "Content-Security-Policy-Report-Only"
                       "Content-Security-Policy")
@@ -54,9 +56,9 @@
                           (or nonce-generator
                               (make-nonce-generator)))]
     (fn [{:keys [uri] :as req}]
-      (if (and (:path report-handler)
-               (= uri (:path report-handler)))
-        ((:handler report-handler) req)
+      (if (and report-uri
+               (= uri report-uri))
+        (report-handler req)
         (let [nonce (when use-nonce? (nonce-generator))
               res (handler (if use-nonce?
                              (assoc req :csp-nonce nonce)

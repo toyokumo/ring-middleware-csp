@@ -78,18 +78,22 @@ By setting a function in `:policy-generator`, you can set a dynamic policy accor
 The argument of the function is ring request map, the return value of it is policy map (same style as `:policy`).
 If the function returns `nil`, use default policy.
 
-### `:report-handler`
+### `:report-handler` and `:report-uri`
 By using `:report-handler`, you can handle report request.
-`:path` is report path. `:handler` is ring-style report handler (you must return valid response map).
+`:report-uri` is the path to use report-handler.
+`:report-handler` is ring-style report handler (you must return valid response map).
+If use `:report-handler` or `:report-uri`, must set both `:report-handler` and `:report-uri`.
+
+WARN: `:report-uri` option and `:report-uri` directive in `:policy` is independent config.
+Even if you set `:report-uri` option, the report-uri directive is NOT added automatically.
 
 e.g.
 ```clojure
 {:policy {:default-src :self
           :report-uri "/csp-report"}
- :report-handler {:path "/csp-report"
-                  :handler (fn [req]
-                             (response {:foo "bar"}))}}
-
+ :report-uri "/csp-report"
+ :report-handler (fn [req]
+                   (response {:foo "bar"}))}
 ```
 
 ### `:use-nonce?`
