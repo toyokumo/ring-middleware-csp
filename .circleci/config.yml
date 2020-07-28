@@ -1,0 +1,39 @@
+version: 2.1
+jobs:
+  lint:
+    docker:
+      - image: ubuntu:20.04
+    working_directory: ~/ring-middleware-csp
+    steps:
+      - checkout
+      - run:
+          name: Install pakages
+          command: |
+            apt update
+            apt install -y wget
+      - run:
+          name: Install cljstyle
+          environment:
+            CLJSTYLE_VERSION: 0.13.0
+          command: |
+            wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
+            tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
+      - run:
+          name: Check style
+          no_output_timeout: 60s
+          command: ./cljstyle check --report
+
+  test:
+    docker:
+      - image: circleci/clojure:lein-2.9.1
+    working_directory: ~/ring-middleware-csp
+    steps:
+      - checkout
+      - run: lein test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - lint
+      - test
