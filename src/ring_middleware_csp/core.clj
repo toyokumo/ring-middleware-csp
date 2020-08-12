@@ -32,6 +32,14 @@
         (map (fn [[d v]] (str (name d) " " (value->str v nonce))))
         (str/join ";"))))
 
+(def ^:private make-template
+  (memoize (fn [policy]
+             (let [nonce-placeholder "%NONCE%"
+                   tmpl (-> (compose policy nonce-placeholder)
+                            (str/split (re-pattern nonce-placeholder)))]
+               (fn [nonce]
+                 (str/join nonce tmpl))))))
+
 (defn wrap-csp
   "Middleware that adds Content-Security-Policy header.
   Accepts the following options:
@@ -54,17 +62,23 @@
                       "Content-Security-Policy")
         nonce-generator (when use-nonce?
                           (or nonce-generator
-                              (make-nonce-generator)))]
+                              (make-nonce-generator)))
+        policy-tmpl (if use-nonce?
+                      (make-template policy)
+                      (compose policy))]
     (fn [{:keys [uri] :as req}]
       (if (and report-uri
                (= uri report-uri))
         (report-handler req)
-        (let [nonce (when use-nonce? (nonce-generator))
+        (let [nonce (if use-nonce? (nonce-generator) "")
               res (handler (if use-nonce?
                              (assoc req :csp-nonce nonce)
                              req))
-              header-value (compose (or (when policy-generator
-                                          (policy-generator req))
-                                        policy)
-                                    nonce)]
+              header-value (let [tmpl (or (when policy-generator
+                                            (when-let [p (policy-generator req)]
+                                              (make-template p)))
+                                          policy-tmpl)]
+                             (if (string? tmpl)
+                               tmpl
+                               (tmpl nonce)))]
           (assoc-in res [:headers header-name] header-value))))))
