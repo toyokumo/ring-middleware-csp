@@ -34,7 +34,7 @@
 
 (def ^:private make-template
   (memoize (fn [policy]
-             (let [nonce-placeholder "%NONCE%"
+             (let [nonce-placeholder ";%NONCE%;"
                    tmpl (-> (compose policy nonce-placeholder)
                             (str/split (re-pattern nonce-placeholder)))]
                (fn [nonce]
