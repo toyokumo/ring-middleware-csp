@@ -40,6 +40,46 @@
                (fn [nonce]
                  (str/join nonce tmpl))))))
 
+(defn- no-nonce-middleware
+  [handler {:keys [policy report-only? policy-generator report-handler
+                   report-uri use-nonce?]
+            :or {use-nonce? true}}]
+  (let [header-name (if report-only?
+                      "Content-Security-Policy-Report-Only"
+                      "Content-Security-Policy")
+        default-policy (compose policy)
+        compose* (when policy-generator (memoize compose))]
+    (fn [{:keys [uri] :as req}]
+      (if (and report-uri (= uri report-uri))
+        (report-handler req)
+        (let [res (handler req)
+              header-value (or (when policy-generator
+                                 (some-> (policy-generator req)
+                                         (compose*)))
+                               default-policy)]
+          (assoc-in res [:headers header-name] header-value))))))
+
+(defn- nonce-middleware
+  [handler {:keys [policy report-only? policy-generator report-handler
+                   report-uri use-nonce? nonce-generator]
+            :or {use-nonce? true}}]
+  (let [header-name (if report-only?
+                      "Content-Security-Policy-Report-Only"
+                      "Content-Security-Policy")
+        nonce-generator (or nonce-generator (make-nonce-generator))
+        policy-tmpl (make-template policy)]
+    (fn [{:keys [uri] :as req}]
+      (if (and report-uri (= uri report-uri))
+        (report-handler req)
+        (let [nonce (nonce-generator)
+              res (handler (assoc req :csp-nonce nonce))
+              header-value (let [tmpl (or (when policy-generator
+                                            (some-> (policy-generator req)
+                                                    (make-template)))
+                                          policy-tmpl)]
+                             (tmpl nonce))]
+          (assoc-in res [:headers header-name] header-value))))))
+
 (defn wrap-csp
   "Middleware that adds Content-Security-Policy header.
   Accepts the following options:
@@ -52,33 +92,11 @@
                       default: true
   :nonce-generator  - custom function that generate nonce string.
                       default implementation by SecureRandom class."
-  [handler {:keys [policy report-only? policy-generator report-handler
-                   report-uri use-nonce? nonce-generator]
-            :or {use-nonce? true}}]
+  [handler {:keys [report-handler report-uri use-nonce?]
+            :or {use-nonce? true}
+            :as opts}]
   (assert (= (nil? report-uri) (nil? report-handler))
           "if use report-handler or report-uri, must set both report-handler and report-uri")
-  (let [header-name (if report-only?
-                      "Content-Security-Policy-Report-Only"
-                      "Content-Security-Policy")
-        nonce-generator (when use-nonce?
-                          (or nonce-generator
-                              (make-nonce-generator)))
-        policy-tmpl (if use-nonce?
-                      (make-template policy)
-                      (compose policy))]
-    (fn [{:keys [uri] :as req}]
-      (if (and report-uri
-               (= uri report-uri))
-        (report-handler req)
-        (let [nonce (if use-nonce? (nonce-generator) "")
-              res (handler (if use-nonce?
-                             (assoc req :csp-nonce nonce)
-                             req))
-              header-value (let [tmpl (or (when policy-generator
-                                            (when-let [p (policy-generator req)]
-                                              (make-template p)))
-                                          policy-tmpl)]
-                             (if (string? tmpl)
-                               tmpl
-                               (tmpl nonce)))]
-          (assoc-in res [:headers header-name] header-value))))))
+  (if use-nonce?
+    (nonce-middleware handler opts)
+    (no-nonce-middleware handler opts)))
