@@ -86,11 +86,10 @@
   :report-handler   - function that process request and return response.
   :report-uri       - specify the path to use report-handler.
   :use-nonce?       - boolean. if true, generate nonce and replace policy value :nonce to `nonce-xxxxxxxx`.
-                      default: true
+                      default: false
   :nonce-generator  - custom function that generate nonce string.
                       default implementation by SecureRandom class."
   [handler {:keys [report-handler report-uri use-nonce?]
-            :or {use-nonce? true}
             :as opts}]
   (assert (= (nil? report-uri) (nil? report-handler))
           "if use report-handler or report-uri, must set both report-handler and report-uri")

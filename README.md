@@ -33,6 +33,7 @@ To install, add the following to your project `:dependencies`:
 Then, Content-Security-Policy header is added to http response.
 
 ### Use nonce
+You can use nonce by setting `use-nonce?` option to `true`. 
 `wrap-csp` middleware inject `:csp-nonce` to request map.
 You can use nonce like following.
 ```clojure
@@ -41,7 +42,6 @@ You can use nonce like following.
    :headers {}
    :body (str "<script nonce=\"" csp-nonce "\">alert('foo');</script>")})
 ```
-If you want to disable injection, set `:use-nonce?` option to `false`.
 
 ### Get header value from policy map
 You can use `compose` function.
@@ -100,14 +100,14 @@ e.g.
 ```
 
 ### `:use-nonce?`
-The default value is `ture`.
-If you set to `false`, disable to generate nonce.
+The default value is `false`.
+If you set to `true`, enable to generate nonce.
 
 ### `:nonce-generator`
-By using `:nonce-generator`, you can use costom nonce generator.
+By using `:nonce-generator`, you can use custom nonce generator.
 Default generator use [`SecureRandom`](https://docs.oracle.com/javase/8/docs/api/java/security/SecureRandom.html) (using "NativePRNGNonBlocking" algorithm) and
 [`java.util.Base64`](https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html).
-It generate base64 string from 256bit random data.
+It generates base64 string from 256bit random data.
 
 e.g.
 ```clojure
