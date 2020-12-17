@@ -41,9 +41,7 @@
                  (str/join nonce tmpl))))))
 
 (defn- no-nonce-middleware
-  [handler {:keys [policy report-only? policy-generator report-handler
-                   report-uri use-nonce?]
-            :or {use-nonce? true}}]
+  [handler {:keys [policy report-only? policy-generator report-handler report-uri]}]
   (let [header-name (if report-only?
                       "Content-Security-Policy-Report-Only"
                       "Content-Security-Policy")
@@ -61,8 +59,7 @@
 
 (defn- nonce-middleware
   [handler {:keys [policy report-only? policy-generator report-handler
-                   report-uri use-nonce? nonce-generator]
-            :or {use-nonce? true}}]
+                   report-uri nonce-generator]}]
   (let [header-name (if report-only?
                       "Content-Security-Policy-Report-Only"
                       "Content-Security-Policy")
