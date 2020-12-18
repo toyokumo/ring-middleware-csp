@@ -32,6 +32,25 @@
         (map (fn [[d v]] (str (name d) " " (value->str v nonce))))
         (str/join ";"))))
 
+(defn parse
+  "Make policy map from CSP header string value"
+  [policy-str]
+  (->> (str/split policy-str #";")
+       (map (fn [v]
+              (let [[name & values] (str/split v #" +")
+                    values (map #(cond
+                                   (str/starts-with? % "'nonce-")
+                                   :nonce
+
+                                   (str/starts-with? % "'")
+                                   (keyword (subs % 1 (dec (count %))))
+
+                                   :else
+                                   %)
+                                values)]
+                [(keyword name) values])))
+       (into {})))
+
 (def ^:private make-template
   (memoize (fn [policy]
              (let [nonce-placeholder ";%NONCE%;"

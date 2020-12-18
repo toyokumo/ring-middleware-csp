@@ -25,6 +25,26 @@
                      :style-src :nonce}
                     "abcdefg")))))
 
+(deftest parse-test
+  (testing "without nonce"
+    (is (= {:default-src [:self]} (parse "default-src 'self'")))
+    (is (= {:default-src [:self]} (parse "default-src 'self'")))
+    (is (= {:default-src [:self "https://example.com"]
+            :connect-src [:none]
+            :script-src [:self "https://script.example.com"]
+            :style-src [:unsafe-inline "https://style.example.com"]}
+           (parse "default-src 'self' https://example.com;connect-src 'none';script-src 'self' https://script.example.com;style-src 'unsafe-inline' https://style.example.com")))
+    (is (= {:script-src [:self]
+            :report-uri ["/csp-report-path"]
+            :report-to ["csp-endpoint"]}
+           (parse "script-src 'self';report-uri /csp-report-path;report-to csp-endpoint"))))
+  (testing "with nonce"
+    (is (= {:script-src [:self :nonce]}
+           (parse "script-src 'self' 'nonce-abcdefg'")))
+    (is (= {:script-src [:self :nonce]
+            :style-src [:nonce]}
+           (parse "script-src 'self' 'nonce-abcdefg';style-src 'nonce-abcdefg'")))))
+
 (deftest wrap-csp-test
   (let [handler (constantly {:status 200 :headers {} :body ""})]
     (is (= "default-src 'self'"
