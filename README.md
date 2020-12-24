@@ -23,6 +23,7 @@ To install, add the following to your project `:dependencies`:
 (def policy {:default-src :none
              :script-src [:self :nonce]
              :style-src ["https://example.com" :unsafe-inline]
+             :block-all-mixed-content true
              :report-uri "/csp-report"})
 
 (def app
@@ -48,8 +49,9 @@ You can use `compose` function.
 ```clojure
 (ring-middleware-csp.core/compose {:default-src :none
                                    :style-src ["https://example.com" :unsafe-inline]
+                                   :block-all-mixed-content true
                                    :report-uri "/csp-report"})
-=> "default-src 'none';style-src https://example.com 'unsafe-inline';report-uri /csp-report"
+=> "default-src 'none';style-src https://example.com 'unsafe-inline';block-all-mixed-content;report-uri /csp-report"
 
 ; with nonce
 (ring-middleware-csp.core/compose {:default-src :none

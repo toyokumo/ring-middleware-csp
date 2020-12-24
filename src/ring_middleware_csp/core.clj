@@ -23,13 +23,22 @@
                :else %))
        (str/join " ")))
 
+(defn- ->directive
+  [nonce [d v]]
+  (case v
+    true (name d)
+    (false nil) nil
+    (str (name d) " " (value->str v nonce))))
+
 (defn compose
   "Make string value for CSP header from policy map"
   ([policy]
    (compose policy nil))
   ([policy nonce]
-   (->> policy
-        (map (fn [[d v]] (str (name d) " " (value->str v nonce))))
+   (->> (for [entry policy
+              :let [directive-str (->directive nonce entry)]
+              :when (seq directive-str)]
+          directive-str)
         (str/join ";"))))
 
 (defn parse
@@ -48,7 +57,9 @@
                                    :else
                                    %)
                                 values)]
-                [(keyword name) values])))
+                [(keyword name) (if (seq values)
+                                  values
+                                  true)])))
        (into {})))
 
 (def ^:private make-template
