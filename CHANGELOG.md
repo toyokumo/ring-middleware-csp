@@ -2,9 +2,9 @@
 
 ## 0.2.0
 ### BREAKING CHANGES
-- The default value of `use-nonce` option (d76f48f)
+- The default value of `use-nonce` option is changed to `false` (d76f48f)
 
-### ADD
+### ADDED
 - `ring-middleware-csp.core/parse` function (b9154be & #3)
 - Allow boolean for directive (#2)
 
