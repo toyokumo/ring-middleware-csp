@@ -27,7 +27,7 @@
   [nonce [d v]]
   (case v
     true (name d)
-    false nil
+    (false nil) nil
     (str (name d) " " (value->str v nonce))))
 
 (defn compose

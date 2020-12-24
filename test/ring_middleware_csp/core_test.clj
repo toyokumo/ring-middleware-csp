@@ -24,6 +24,10 @@
     (is (= "default-src 'self';script-src 'self'"
            (compose {:default-src [:self]
                      :block-all-mixed-content false
+                     :script-src [:self]})))
+    (is (= "default-src 'self';script-src 'self'"
+           (compose {:default-src [:self]
+                     :block-all-mixed-content nil
                      :script-src [:self]}))))
   (testing "with nonce"
     (is (= "script-src 'self' 'nonce-abcdefg'"
