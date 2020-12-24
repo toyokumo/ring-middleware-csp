@@ -62,7 +62,12 @@
            (parse "script-src 'self' 'nonce-abcdefg'")))
     (is (= {:script-src [:self :nonce]
             :style-src [:nonce]}
-           (parse "script-src 'self' 'nonce-abcdefg';style-src 'nonce-abcdefg'")))))
+           (parse "script-src 'self' 'nonce-abcdefg';style-src 'nonce-abcdefg'"))))
+  (testing "whitespaces"
+    (is (= {:script-src [:self]
+            :style-src [:self]}
+           (parse "script-src 'self'; style-src 'self'"))
+        "add whitespace after ';'")))
 
 (deftest wrap-csp-test
   (let [handler (constantly {:status 200 :headers {} :body ""})]
