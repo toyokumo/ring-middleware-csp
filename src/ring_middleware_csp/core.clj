@@ -37,7 +37,7 @@
   [policy-str]
   (->> (str/split policy-str #";")
        (map (fn [v]
-              (let [[name & values] (str/split v #" +")
+              (let [[name & values] (str/split (str/trim v) #" +")
                     values (map #(cond
                                    (str/starts-with? % "'nonce-")
                                    :nonce
