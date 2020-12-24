@@ -57,7 +57,9 @@
                                    :else
                                    %)
                                 values)]
-                [(keyword name) values])))
+                [(keyword name) (if (seq values)
+                                  values
+                                  true)])))
        (into {})))
 
 (def ^:private make-template
