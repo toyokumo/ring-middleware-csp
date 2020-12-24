@@ -16,26 +16,29 @@
     (is (= "script-src 'self';report-uri /csp-report-path;report-to csp-endpoint"
            (compose {:script-src [:self]
                      :report-uri "/csp-report-path"
-                     :report-to "csp-endpoint"})))
-    (is (= "default-src 'self';block-all-mixed-content;script-src 'self'"
-           (compose {:default-src [:self]
-                     :block-all-mixed-content true
-                     :script-src [:self]})))
-    (is (= "default-src 'self';script-src 'self'"
-           (compose {:default-src [:self]
-                     :block-all-mixed-content false
-                     :script-src [:self]})))
-    (is (= "default-src 'self';script-src 'self'"
-           (compose {:default-src [:self]
-                     :block-all-mixed-content nil
-                     :script-src [:self]}))))
+                     :report-to "csp-endpoint"}))))
   (testing "with nonce"
     (is (= "script-src 'self' 'nonce-abcdefg'"
            (compose {:script-src [:self :nonce]} "abcdefg")))
     (is (= "script-src 'self' 'nonce-abcdefg';style-src 'nonce-abcdefg'"
            (compose {:script-src [:self :nonce]
                      :style-src :nonce}
-                    "abcdefg")))))
+                    "abcdefg"))))
+  (testing "boolean"
+    (testing "true"
+      (is (= "default-src 'self';block-all-mixed-content;script-src 'self'"
+             (compose {:default-src [:self]
+                       :block-all-mixed-content true
+                       :script-src [:self]}))))
+    (testing "falsy"
+      (is (= "default-src 'self';script-src 'self'"
+             (compose {:default-src [:self]
+                       :block-all-mixed-content false
+                       :script-src [:self]})))
+      (is (= "default-src 'self';script-src 'self'"
+             (compose {:default-src [:self]
+                       :block-all-mixed-content nil
+                       :script-src [:self]}))))))
 
 (deftest parse-test
   (testing "without nonce"
