@@ -1,4 +1,4 @@
-(defproject toyokumo/ring-middleware-csp "0.2.0"
+(defproject toyokumo/ring-middleware-csp "0.2.1-SNAPSHOT"
   :description "Ring middleware for Content Security Policy"
   :url "https://github.com/toyokumo/ring-middleware-csp"
   :license {:name "Apache, Version 2.0"
