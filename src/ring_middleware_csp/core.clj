@@ -8,7 +8,9 @@
     Base64)))
 
 (defn- make-nonce-generator []
-  (let [sr (SecureRandom/getInstance "NativePRNGNonBlocking")
+  (let [sr (if (.startsWith (System/getProperty "os.name") "Windows")
+             (SecureRandom.)
+             (SecureRandom/getInstance "NativePRNGNonBlocking"))
         be (Base64/getEncoder)]
     (fn []
       (let [ba (byte-array 32)]

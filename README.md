@@ -107,7 +107,8 @@ If you set to `true`, enable to generate nonce.
 
 ### `:nonce-generator`
 By using `:nonce-generator`, you can use custom nonce generator.
-Default generator use [`SecureRandom`](https://docs.oracle.com/javase/8/docs/api/java/security/SecureRandom.html) (using "NativePRNGNonBlocking" algorithm) and
+Default generator use [`SecureRandom`](https://docs.oracle.com/javase/8/docs/api/java/security/SecureRandom.html) (using "NativePRNGNonBlocking" algorithm
+or, on MS-Windows, the [default implementation](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SecureRandomImp)) and
 [`java.util.Base64`](https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html).
 It generates base64 string from 256bit random data.
 
