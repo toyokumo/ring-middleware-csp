@@ -150,4 +150,21 @@
               :headers {"Content-Security-Policy"
                         "default-src 'self';script-src 'nonce';style-src 'self' 'nonce'"}
               :body ""}
-             ((wrap-csp handler opts) {}))))))
+             ((wrap-csp handler opts) {})))))
+  (testing "default nonce-generator"
+    (let [nonce* (volatile! nil)
+          handler (fn [{:keys [csp-nonce] :as req}]
+                    (vreset! nonce* csp-nonce)
+                    {:status 200
+                     :headers {}
+                     :body (str "<script nonce=\"" csp-nonce "\"></script>")})
+          opts {:policy {:script-src :nonce}
+                :use-nonce? true}
+          result ((wrap-csp handler opts) {})
+          nonce @nonce*
+          expected (str "script-src 'nonce-" nonce "'")]
+      (is (> (count nonce) 0))
+      (is (= {:status 200
+              :headers {"Content-Security-Policy" expected}
+              :body (str "<script nonce=\"" nonce "\"></script>")}
+             result)))))
