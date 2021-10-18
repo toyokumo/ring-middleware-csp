@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.1
+### ADDED
+- SecureRandom algorithm for MS-Windows (#5 Thanks @ikappaki)
+
 ## 0.2.0
 ### BREAKING CHANGES
 - The default value of `use-nonce` option is changed to `false` (d76f48f)
