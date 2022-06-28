@@ -79,15 +79,26 @@
                       "Content-Security-Policy")
         default-policy (compose policy)
         compose* (when policy-generator (memoize compose))]
-    (fn [{:keys [uri] :as req}]
-      (if (and report-uri (= uri report-uri))
-        (report-handler req)
-        (let [res (handler req)
-              header-value (or (when policy-generator
-                                 (some-> (policy-generator req)
-                                         (compose*)))
-                               default-policy)]
-          (assoc-in res [:headers header-name] header-value))))))
+    (fn no-nonce-middleware-handler
+      ([{:keys [uri] :as req}]
+       (if (and report-uri (= uri report-uri))
+         (report-handler req)
+         (let [res (handler req)
+               header-value (or (when policy-generator
+                                  (some-> (policy-generator req)
+                                          (compose*)))
+                                default-policy)]
+           (assoc-in res [:headers header-name] header-value))))
+      ([{:keys [uri] :as req} respond raise]
+       (if (and report-uri (= uri report-uri))
+         (respond (report-handler req))
+         (handler req
+                  (let [header-value (or (when policy-generator
+                                           (some-> (policy-generator req)
+                                                   (compose*)))
+                                         default-policy)]
+                    #(respond (assoc-in % [:headers header-name] header-value)))
+                  raise))))))
 
 (defn- nonce-middleware
   [handler {:keys [policy report-only? policy-generator report-handler
@@ -97,17 +108,30 @@
                       "Content-Security-Policy")
         nonce-generator (or nonce-generator (make-nonce-generator))
         policy-tmpl (make-template policy)]
-    (fn [{:keys [uri] :as req}]
-      (if (and report-uri (= uri report-uri))
-        (report-handler req)
-        (let [nonce (nonce-generator)
-              res (handler (assoc req :csp-nonce nonce))
-              header-value (let [tmpl (or (when policy-generator
-                                            (some-> (policy-generator req)
-                                                    (make-template)))
-                                          policy-tmpl)]
-                             (tmpl nonce))]
-          (assoc-in res [:headers header-name] header-value))))))
+    (fn nonce-middleware-handler
+      ([{:keys [uri] :as req}]
+       (if (and report-uri (= uri report-uri))
+         (report-handler req)
+         (let [nonce (nonce-generator)
+               res (handler (assoc req :csp-nonce nonce))
+               header-value (let [tmpl (or (when policy-generator
+                                             (some-> (policy-generator req)
+                                                     (make-template)))
+                                           policy-tmpl)]
+                              (tmpl nonce))]
+           (assoc-in res [:headers header-name] header-value))))
+      ([{:keys [uri] :as req} respond raise]
+       (if (and report-uri (= uri report-uri))
+         (respond (report-handler req))
+         (let [nonce (nonce-generator)
+               tmpl (or (when policy-generator
+                          (some-> (policy-generator req)
+                                  (make-template)))
+                        policy-tmpl)]
+           (handler (assoc req :csp-nonce nonce)
+                    (fn [res]
+                      (respond (assoc-in res [:headers header-name] (tmpl nonce))))
+                    raise)))))))
 
 (defn wrap-csp
   "Middleware that adds Content-Security-Policy header.

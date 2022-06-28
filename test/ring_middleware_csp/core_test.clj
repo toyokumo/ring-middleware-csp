@@ -79,6 +79,16 @@
                                        :report-only? true}) {})
                    [:headers "Content-Security-Policy-Report-Only"])))))
 
+(deftest wrap-csp-async-test
+  (let [async-handler (fn [_req respond _raise]
+                        (respond {:status 200 :headers {"X-Test-Source" "async-handler"} :body "async"}))]
+    (is (= {:body "async"
+            :headers {"Content-Security-Policy" "default-src 'self'"
+                      "X-Test-Source" "async-handler"}
+            :status 200}
+           ((wrap-csp async-handler {:policy {:default-src :self}}) {} identity #(throw (ex-info "No errors" {}))))
+        "async resp has csp set")))
+
 (deftest policy-generator-test
   (let [handler (constantly {:status 200 :headers {} :body ""})
         generator #(case (:uri %)
@@ -102,7 +112,7 @@
   (testing "use report-handler and report-uri"
     (let [handler (constantly {:status 200 :headers {} :body "OK"})
           opts {:policy {:default-src :self}
-                :report-handler (fn [req] {:status 204 :headers {} :body ""})
+                :report-handler (fn [_req] {:status 204 :headers {} :body ""})
                 :report-uri "/csp-report"}]
       (is (= {:status 204 :headers {} :body ""}
              ((wrap-csp handler opts) {:uri "/csp-report"})))
@@ -120,6 +130,23 @@
       (is (thrown? AssertionError
             (wrap-csp handler {:policy {:default-src :self}
                                :report-uri "/csp-report"}))))))
+
+(deftest report-handler-async-test
+  (let [handler (fn [_req respond _raise]
+                  (respond {:status 200 :headers {} :body "async"}))
+        opts {:policy {:default-src :self}
+              :report-handler (fn [_req] {:status 204 :headers {} :body "async report"})
+              :report-uri "/csp-report"}
+        csp-async (fn [req]
+                    ((wrap-csp handler opts) req identity #(throw (ex-info "No errors" {}))))]
+    (is (= {:status 204 :headers {} :body "async report"}
+           (csp-async {:uri "/csp-report"})))
+    (is (= {:status 200 :body "async" :headers {"Content-Security-Policy" "default-src 'self'"}}
+           (csp-async {:uri "/a/csp-report"})))
+    (is (= {:status 200 :body "async" :headers {"Content-Security-Policy" "default-src 'self'"}}
+           (csp-async {:uri "/csp-report/1"})))
+    (is (= {:status 200 :body "async" :headers {"Content-Security-Policy" "default-src 'self'"}}
+           (csp-async {:uri "/"})))))
 
 (deftest nonce-test
   (testing "enabled"
