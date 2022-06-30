@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+### ADDED
+- Async HTTP support with 3-arity handlers (#6)
+
 ## 0.2.1
 ### ADDED
 - SecureRandom algorithm for MS-Windows (#5 Thanks @ikappaki)

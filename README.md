@@ -33,6 +33,8 @@ To install, add the following to your project `:dependencies`:
 ```
 Then, Content-Security-Policy header is added to http response.
 
+Handlers created by `wrap-csp` support 3-arity versions for asynchronous use.
+
 ### Use nonce
 You can use nonce by setting `use-nonce?` option to `true`. 
 `wrap-csp` middleware inject `:csp-nonce` to request map.
