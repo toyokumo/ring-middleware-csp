@@ -1,8 +1,8 @@
 # Change Log
 
-## Unreleased
+## 0.3.0
 ### ADDED
-- Async HTTP support with 3-arity handlers (#6)
+- Async HTTP support with 3-arity handlers (#6 Thanks Snurppa)
 
 ## 0.2.1
 ### ADDED
