@@ -1,0 +1,8 @@
+{:lib toyokumo/ring-middleware-csp
+ :version "0.4.{{git/commit-count}}"
+ :description "Ring middleware for Content Security Policy"
+ :documents [{:file "CHANGELOG.md"
+              :match "Unreleased"
+              :action :append-after
+              :text "\n## {{version}}"}]
+ :github-actions? true}
