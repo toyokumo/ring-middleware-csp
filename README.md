@@ -124,7 +124,7 @@ e.g.
 
 ## Testing
 ```
-lein test
+clojure -M:dev:test
 ```
 
 ## Formatting
