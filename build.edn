@@ -1,6 +1,8 @@
 {:lib toyokumo/ring-middleware-csp
  :version "0.4.{{git/commit-count}}"
  :description "Ring middleware for Content Security Policy"
+ :licenses [{:name "Apache, Version 2.0"
+             :url "http://www.apache.org/licenses/LICENSE-2.0"}]
  :documents [{:file "CHANGELOG.md"
               :match "Unreleased"
               :action :append-after
