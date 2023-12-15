@@ -6,41 +6,41 @@ jobs:
   clj_style:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: 0918nobita/setup-cljstyle@v0.2.0
+      - uses: actions/checkout@v4
+      - uses: DeLaGuardo/setup-clojure@master
         with:
-          cljstyle-version: 0.14.0
+          cljstyle: 0.15.0
       - run: cljstyle check --report -v
 
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11, 15]
+        java: [8, 11, 17, 21]
     name: Test (Java ${{ matrix.java }})
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
           java-package: jdk
           architecture: x64
+          distribution: 'zulu'
 
       - uses: DeLaGuardo/setup-clojure@master
         with:
-          lein: '2.9.4'
+          cli: latest
 
       - name: Cache dependencies
-        uses: toyokumo/cache@main
+        uses: actions/cache@v3
         with:
           path: |
             ~/.m2
-            ~/.lein
-          key: clj-cache-${{ hashFiles('**/project.clj') }}
+          key: clj-cache-${{ hashFiles('**/deps.edn') }}
           restore-keys: |
             clj-cache-
 
       - name: Run tests
-        run: lein test
+        run: clojure -M:dev:test
 

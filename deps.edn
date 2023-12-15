@@ -1,0 +1,10 @@
+{:paths ["src" "resources"],
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}}
+
+ :aliases
+ {:dev {:extra-paths ["test"]
+        :extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}}}
+  :test {:main-opts ["-m" "kaocha.runner"]}
+  :build {:deps {com.github.liquidz/build.edn {:git/tag "0.11.241"
+                                               :git/sha "277bf6ebfbf8f38acbffa33a1670f5965bf4634f"}}
+          :ns-default build-edn.main}}}
