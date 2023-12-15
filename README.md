@@ -1,7 +1,7 @@
 # ring-middleware-csp
 Ring middleware for Content Security Policy
 
-[![CircleCI](https://circleci.com/gh/toyokumo/ring-middleware-csp.svg?style=shield&circle-token=445e8d5d3a86d16e9daf345e032a8f9b10cdb084)](https://app.circleci.com/pipelines/github/toyokumo/ring-middleware-csp)
+[![Lint and Test](https://github.com/toyokumo/ring-middleware-csp/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/toyokumo/ring-middleware-csp/actions/workflows/test.yml)
 [![cljdoc badge](https://cljdoc.org/badge/toyokumo/ring-middleware-csp)](https://cljdoc.org/d/toyokumo/ring-middleware-csp/CURRENT)
 [![Clojars Project](https://img.shields.io/clojars/v/toyokumo/ring-middleware-csp.svg)](https://clojars.org/toyokumo/ring-middleware-csp)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
