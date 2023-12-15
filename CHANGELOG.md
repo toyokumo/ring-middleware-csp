@@ -1,5 +1,7 @@
 # Change Log
 ## Unreleased
+### Breaking
+- Use deps.edn instead of Leiningen.
 
 ## 0.3.0
 ### ADDED
